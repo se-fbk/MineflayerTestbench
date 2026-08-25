@@ -10,21 +10,21 @@
     "dev": "ts-node src/main.ts"
   },
   "dependencies": {
-    "@fast-csv/parse": "^5.0.5",
+    "@fast-csv/parse": "^5.0.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "fast-csv": "^5.0.5",
-    "mineflayer": "4.33.0",
+    "fast-csv": "^5.0.7",
+    "mineflayer": "4.37.1",
     "mineflayer-pathfinder": "^2.4.5",
     "nbt-ts": "^2.0.2",
-    "vec3": "^0.1.10",
-    "zod": "4.1.12"
+    "vec3": "^0.2.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "24.9.1",
+    "@types/node": "26.3.0",
     "require-self": "^0.2.3",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }
