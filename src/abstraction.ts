@@ -249,8 +249,6 @@ export async function getMobHealth(bot: Bot, target: UUID): Promise<number | nul
 
         bot.once("message", (msg) => {
             clearTimeout(timeout);
-            console.log(msg);
-            console.log(JSON.stringify(msg));
             if (msg?.translate === "commands.data.entity.query") {
                 resolve( + msg.json.with[1].extra[0].text);
             } else {
