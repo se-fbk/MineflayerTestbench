@@ -40,35 +40,34 @@ function serializeTags(tagMap: Record<string, Vec3 | UUID> | null): Record<strin
  * @param minecraftBot The Mineflayer bot instance
  * @param port The port on which to start the server
  */
-export function startApiServer(port: number = getConfig().server.port): void {
+export function startApiServer(port: number): void {
     const app = express();
     app.use(cors());
     app.use(express.json());
 
     // Endpoint to get the bot's status
     app.get('/:bot/status', (req, res) => {
-        const botEntry = bots.get(req.params.bot);
-        const bot = botEntry?.bot;
+        const bot = bots.get(req.params.bot);
 
-        if (!bot) {
+        if (!bot?.bot) {
             return res.status(500).json({ error: 'Bot is not initialized' });
         }
-        const pos = bot.entity.position;
-        const inventory = bot.inventory.items().map(item => ({
+        const pos = bot.bot.entity.position;
+        const inventory = bot.bot.inventory.items().map(item => ({
             id: item.type,
             count: item.count,
             slot: item.slot,
             name: item.name,
         }));
-        const nearbyBlocks = scanNearbyBlocks(bot);
-        const nearbyEntities = scanNearbyEntities(bot);
+        const nearbyBlocks = scanNearbyBlocks(bot.bot);
+        const nearbyEntities = scanNearbyEntities(bot.bot);
 
         res.json({
-            status: botEntry.status,
-            lastActionResult: botEntry.lastActionResult,
+            status: bot.status,
+            lastActionResult: bot.lastActionResult,
             position: { x: pos.x, y: pos.y, z: pos.z },
-            health: bot.health,
-            food: bot.food,
+            health: bot.bot.health,
+            food: bot.bot.food,
             inventory,
             nearbyBlocks,
             nearbyEntities,

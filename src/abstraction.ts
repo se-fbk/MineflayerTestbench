@@ -14,7 +14,7 @@ import { getConfig } from './config.js';
 let movement: Movements;
 
 export function setMovements(bot: Bot) {
-    const defaultMove: Movements = new pathfinder.Movements(bot);
+    const defaultMove: Movements = new Movements(bot);
 
     // can't break or place blocks while pathfinding
     defaultMove.canDig = false;

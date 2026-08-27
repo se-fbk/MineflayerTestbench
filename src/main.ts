@@ -16,7 +16,6 @@ const args: any = getArgs();
 const config = loadConfig(args?.config || "./config.json");
 
 const tests_json: string = args?.test;
-const api_port: number = args?.api_port || 3000;
 let parsed_tests: TestCasesSchema | undefined;
 if (tests_json) {
     const file = fs.readFileSync(tests_json, 'utf8');
@@ -29,10 +28,11 @@ const output_csv_path: string | undefined = args?.output_csv || meta?.output_csv
 
 if (args?.test) {
     const bot = await initBot(args?.username || meta?.username || "Bot", args?.address || meta?.address);
-    const success: boolean = await executeTests(bot, parsed_tests!, output_csv_path);
+    const success = await executeTests(bot, parsed_tests!, output_csv_path);
     bot.quit();
     exit(success ? 0 : 1); //convert boolean to standard bash 0 for all correct 1 for error
 } else {
-    startApiServer(config.server.port);
+    const api_port: number = args?.api_port || config.server.port;
+    startApiServer(api_port);
     console.log('API server started. Awaiting connection request.');
 }
