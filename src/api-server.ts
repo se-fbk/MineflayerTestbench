@@ -6,6 +6,7 @@ import { buildLevel } from "./level-builder.js";
 import { DiscriminizedAction } from "./tests-schema.js";
 import { UUID } from "node:crypto";
 import { getConfig } from "./config.js";
+import { getMobHealth } from "./abstraction.js";
 
 let botStatus: string = 'IDLE';
 let bot: Bot | null = null;
@@ -98,6 +99,17 @@ export function startApiServer(minecraftBot: Bot, port: number = getConfig().ser
     app.get('/tags', (req, res) => {
         res.json({ tags: serializeTags(map) });
     });
+
+
+    // Return the health of the mob from the UUID
+    app.get('/tags/:uuid', async (req, res) => {
+        if (!bot) {
+            return res.status(500).json({ error: 'Bot is not initialized' });
+        }
+        const health = await getMobHealth(bot, req.params.uuid as UUID);
+        res.json({ health: health });
+    });
+
 
     // Reset agent by rebuild the last built level
     app.post('/reset', async (req, res) => {

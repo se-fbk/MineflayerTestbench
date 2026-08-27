@@ -239,6 +239,27 @@ export async function checkEntity(bot: Bot, target: UUID, nbt?: string, health?:
     })
 }
 
+export async function getMobHealth(bot: Bot, target: UUID): Promise<number | null> {
+
+    return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+            resolve(null);
+            bot.removeAllListeners("message");
+        }, getConfig().actions.shortTimeoutMs);
+
+        bot.once("message", (msg) => {
+            clearTimeout(timeout);
+            if (msg?.translate === "commands.data.entity.query") {
+                resolve( + msg.json.with[1].extra[0].text);
+            } else {
+                resolve(null);
+            }
+        });
+
+        bot.chat(`/data get entity ${target} Health`);
+    })
+}
+
 
 export async function anvil(bot: Bot, anvil_block: Vec3, item_one?: string, item_two?: string, name?: string, verbose?: boolean): Promise<boolean> {
     const block = bot.blockAt(anvil_block);
@@ -308,6 +329,39 @@ export async function checkInventory(bot: Bot, item_id: string, count?: number, 
         bot.chat(command)
     })
 }
+
+export async function craft(bot: Bot, item_name: string, crafting_table?: Vec3, count: number = 1, verbose?: boolean): Promise<boolean> {
+    const item = bot.registry.itemsByName[item_name];
+    if (!item){
+        if (verbose) {
+            console.log(`Item "${item_name}" not found`);
+        }
+        return false;
+    }
+
+    let crafting_table_block: Block | null = null;
+    if (crafting_table){
+        crafting_table_block = bot.blockAt(crafting_table);
+        if (!crafting_table_block){
+            if (verbose) console.log(`No block found at ${crafting_table}`);
+            return false;
+        }
+    }
+
+    const recipes = bot.recipesAll(item.id, null, crafting_table_block);
+    if (!recipes.length){
+        if (verbose) console.log(`No recipes found for ${item_name}` + crafting_table_block ? " without crafting table" : "");
+        return false;
+    }
+
+    if (verbose) {
+        console.log(`Attempting to craft ${count}x${item.name}`);
+    }
+
+    await bot.craft(recipes[0], count, crafting_table_block || undefined);
+    return true;
+}
+
 
 export async function selectItem(bot: Bot, element: number | string, verbose?: boolean): Promise<boolean> {
     if (typeof element === "number") {
