@@ -8,7 +8,6 @@ import { UUID } from "node:crypto";
 import { getConfig } from "./config.js";
 import { getMobHealth } from "./abstraction.js";
 import { initBot } from "./init-bot.js";
-import { error } from "node:console";
 
 interface BotEntry {
     bot: Bot;
@@ -150,6 +149,7 @@ export function startApiServer(port: number = getConfig().server.port): void {
         if (bot?.bot) {
             await bot.bot.quit();
         }
+
         bots.delete(req.params.bot);
     });
 

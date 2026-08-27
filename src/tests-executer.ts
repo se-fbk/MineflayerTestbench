@@ -26,7 +26,8 @@ export async function executeTests(bot: Bot, parsed_tests: TestCasesSchema, outp
 
         console.log("\nBuilding level");
 
-        const map = await buildLevel(bot, meta.level_csv, location)
+        const csv = fs.readFileSync(meta.level_csv).toString('utf-8');
+        const map = await buildLevel(bot, csv, location)
 
         console.log(`Executing test ${test_case.id}...`);
 
