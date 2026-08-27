@@ -1,12 +1,7 @@
-import mineflayer from 'mineflayer';
-import pathfinder from 'mineflayer-pathfinder';
 import fs from 'fs'
 
-import { isOp, waitForOp } from './op-check.js'
 import { getArgs } from './args-parse.js';
 import { executeTests } from './tests-executer.js'
-
-import { setMovements } from './abstraction.js'
 
 import { startApiServer } from './api-server.js';
 
@@ -14,15 +9,16 @@ import { loadConfig } from './config.js';
 
 import { TestCasesSchema } from './tests-schema.js';
 import { exit } from 'process';
+import { initBot } from './init-bot.js';
 
 // setup command line args and defaults
 const args: any = getArgs();
-
 const config = loadConfig(args?.config || "./config.json");
+
 const tests_json: string = args?.test;
 const api_port: number = args?.api_port || 3000;
 let parsed_tests: TestCasesSchema | undefined;
-if (tests_json){
+if (tests_json) {
     const file = fs.readFileSync(tests_json, 'utf8');
     const json = JSON.parse(file);
     parsed_tests = TestCasesSchema.parse(json);
@@ -31,46 +27,12 @@ const meta = parsed_tests?.meta;
 const output_csv_path: string | undefined = args?.output_csv || meta?.output_csv
 
 
-const bot = mineflayer.createBot({
-    host: args?.address || meta?.address || "127.0.0.1",
-    username: args?.username || meta?.username || "Bot",
-    auth: 'offline' // for offline mode servers, no need to buy real accounts for testing
-});
-
-// Inject the pathfinder plugin
-bot.loadPlugin(pathfinder.pathfinder);
-
-// Log errors and kick reasons:
-bot.on('kicked', (m) => { console.log(m), exit(3) });
-bot.on('error', (m) => { console.log(m), exit(4) });
-
-bot.once('spawn', async () => {
-    if (!await isOp(bot)) {
-        bot.chat('bot is not OP on the server please run the following command:');
-        bot.chat(`op ${bot.username}`);
-        await waitForOp(bot);
-        bot.chat('Bot is successfully op:');
-    }
-    // this tag will be used later
-    bot.chat('/tag @s add bot');
-
-
-
-
-    await bot.waitForTicks(config.bot.spawnSettleTicks);
-    setMovements(bot);
-
-    console.log(`MineflayerTestbed running on ${bot.version} server`)
-
-    // if test is provided, run the tests and exit with the appropriate code
-    // else start the API server to allow external control of the bot
-    if (args?.test) {
-        const success: boolean = await executeTests(bot, parsed_tests!, output_csv_path);
-        bot.quit();
-        exit(success? 0 : 1); //convert boolean to standard bash 0 for all correct 1 for error
-    }else{
-        startApiServer(bot, config.server.port);
-        console.log('API server started. Bot will stay connected until terminated.');
-    }
-});
-
+if (args?.test) {
+    const bot = await initBot(args?.username || meta?.username || "Bot", args?.address || meta?.address);
+    const success: boolean = await executeTests(bot, parsed_tests!, output_csv_path);
+    bot.quit();
+    exit(success ? 0 : 1); //convert boolean to standard bash 0 for all correct 1 for error
+} else {
+    startApiServer(config.server.port);
+    console.log('API server started. Awaiting connection request.');
+}
