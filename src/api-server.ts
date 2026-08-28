@@ -120,10 +120,10 @@ export function startApiServer(port: number): void {
         res.json({ health: health });
     });
 
-    app.put('/:bot/:address', async (req, res) => {
+    app.post('/:bot/join/:address', async (req, res) => {
         let bot = bots.get(req.params.bot);
         if (bot?.bot) {
-            await bot.bot.quit();
+            bot.bot.quit();
         }
 
         if (!bot){
@@ -132,11 +132,13 @@ export function startApiServer(port: number): void {
 
         try {
             bot.bot = await initBot(req.params.bot, req.params.address);
+            console.log()
         } catch (err: any) {
             res.status(500).json({ error: 'Failed to create bot' });
             return;
         }
         bots.set(req.params.bot, bot);
+        res.json({ success: true });
     });
 
     app.delete('/:bot/', async (req, res) => {
@@ -150,6 +152,7 @@ export function startApiServer(port: number): void {
         }
 
         bots.delete(req.params.bot);
+        res.json({ success: true });
     });
 
 

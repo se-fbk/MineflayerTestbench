@@ -142,6 +142,7 @@ export async function attack(bot: Bot, target: UUID) {
     if (!entity) {
         return false;
     }
+    await bot.lookAt(entity.position);
     await bot.attack(entity);
     return true;
 }
