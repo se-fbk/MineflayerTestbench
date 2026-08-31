@@ -79,6 +79,39 @@
                     "expect_result": false
                 },
                 {
+                    "name": "break",
+                    "target": "chest",
+                    "expect_result": true
+                },
+                {
+                    "name": "check_advancement",
+                    "advancement": "minecraft:story/mine_stone",
+                    "expect_result": false
+                },
+                {  
+                    "name": "move_to",
+                    "target": "stone_to_dig",
+                    "expect_result": true
+                },
+                {
+                    "name": "select",
+                    "item": "diamond_pickaxe",
+                    "expect_result": true
+                },
+                {
+                    "name": "break",
+                    "target": "stone_to_dig",
+                    "expect_result": true
+                },
+                {
+                    "name": "pick_up_loot"
+                },
+                {
+                    "name": "check_advancement",
+                    "advancement": "minecraft:story/mine_stone",
+                    "expect_result": true
+                },
+                {
                     "name": "move_to",
                     "target": "btn",
                     "expect_result": true
