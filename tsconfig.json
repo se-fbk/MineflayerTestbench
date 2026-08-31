@@ -7,7 +7,7 @@
 		"target": "ES2024",
 		"outDir": "./dist",
 		"allowJs": true,
-		"rootDir": "./",
+		"rootDir": "./src",
 		"incremental": true,
 		"esModuleInterop": true,
 		"strict": true,
