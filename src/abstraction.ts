@@ -240,6 +240,27 @@ export async function checkEntity(bot: Bot, target: UUID, nbt?: string, health?:
     })
 }
 
+export async function checkAdvancement(bot: Bot, advancement:string): Promise<boolean> {
+    return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+            resolve(false);
+            bot.removeAllListeners("message");
+        }, getConfig().actions.shortTimeoutMs);
+
+        bot.once("message", (msg) => {
+            clearTimeout(timeout);
+            if (msg?.translate === "commands.execute.conditional.pass_count") {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        });
+
+        bot.chat(`/execute if entity @s[advancements={${advancement}=true}]`)
+    })
+}
+
+
 export async function getMobHealth(bot: Bot, target: UUID): Promise<number | null> {
 
     return new Promise((resolve) => {

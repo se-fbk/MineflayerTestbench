@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Bot } from 'mineflayer';
 
-import { attack, breakBlock, click, moveTo, selectItem, craft, pickUpLoot, placeBlockOn, useOnEntity, checkBlock, checkEntity, anvil, checkInventory, sneak } from './abstraction.js'
+import { attack, breakBlock, click, moveTo, selectItem, craft, pickUpLoot, placeBlockOn, useOnEntity, checkBlock, checkEntity, anvil, checkInventory, sneak, checkAdvancement } from './abstraction.js'
 import { Vec3 } from 'vec3';
 
 
@@ -176,6 +176,16 @@ const CheckEntity = CheckSchema.extend({
     }
 }))
 
+const CheckAdvancement = CheckSchema.extend({
+    name: z.literal("check_advancement"),
+    advancement: z.string(),
+}).transform((data) => ({
+    ...data,
+    execute: async (bot: Bot, map: any) => {
+        return await checkAdvancement(bot, data.advancement);
+    }
+}))
+
 const CheckBlock = CheckSchema.extend({
     name: z.literal("check_block"),
     target: Target,
@@ -237,11 +247,12 @@ export const DiscriminizedAction = z.discriminatedUnion("name", [
     Attack,
     Sneak,
     AnvilOperation,
-
+    
     // check
     CheckBlock,
     CheckEntity,
     CheckInventory,
+    CheckAdvancement,
 
     // NO-OPS
     Pass,

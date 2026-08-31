@@ -40,6 +40,7 @@ async function buildLevel(bot: Bot, csv_content: string, coords: Vec3): Promise<
     bot.chat('/xp set @s 0');
     bot.chat('/xp set @s 0 levels');
     bot.chat('/effect clear @s');
+    bot.chat('/advancement revoke @s everything');
     // execute the kill command multiple times to also kill any items the entities may have dropped
     // also to handle slimes
     const kill_cmd = `/kill @e[type=!minecraft:player, x=${coords.x - 1}, y=${coords.y - 1}, z=${coords.z - 1}, dx=${dx}, dy=${dy}, dz=${dz}]`
