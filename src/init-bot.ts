@@ -5,7 +5,7 @@ import { setMovements } from './abstraction.js';
 import { getConfig } from './config.js';
 
 export async function initBot(name: string, address: string | null): Promise<Bot> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const bot = mineflayer.createBot({
             host: address || "localhost",
             username: name,
@@ -18,11 +18,12 @@ export async function initBot(name: string, address: string | null): Promise<Bot
         // Log errors and kick reasons:
         bot.on('kicked', (m) => {
             console.log(m);
+            reject(m)
         });
 
-        bot.on('error', (m) => {
-            console.error(m);
-            throw m;
+        bot.on('error', (err) => {
+            console.error(err);
+            reject(err);
         });
 
         bot.once('spawn', async () => {
