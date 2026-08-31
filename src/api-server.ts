@@ -7,15 +7,18 @@ import { DiscriminizedAction } from "./tests-schema.js";
 import { UUID } from "node:crypto";
 import { getConfig } from "./config.js";
 import { getMobHealth } from "./abstraction.js";
+import { initBot } from "./init-bot.js";
 
-let botStatus: string = 'IDLE';
-let bot: Bot | null = null;
-let map: Record<string, Vec3 | UUID> | null = null;
-let lastActionResult: boolean = true;
-// Remember the last level that was built so /reset can rebuild it.
-// NOTE: this could be replaced by deininf a 'defaualt' level
-let lastLevelCsv: string | null = null;
-let lastLocation: Vec3 | null = null;
+interface BotEntry {
+    bot: Bot;
+    status: string;
+    lastActionResult: boolean;
+    lastLevelCsv: string | null;
+    lastLocation: Vec3 | null;
+    map: Record<string, Vec3 | UUID> | null;
+}
+
+export const bots: Map<string, BotEntry> = new Map();
 
 /**
  * Serialize the tag map (tag name -> position or entity UUID) into a plain
@@ -37,34 +40,34 @@ function serializeTags(tagMap: Record<string, Vec3 | UUID> | null): Record<strin
  * @param minecraftBot The Mineflayer bot instance
  * @param port The port on which to start the server
  */
-export function startApiServer(minecraftBot: Bot, port: number = getConfig().server.port): void   {
-    bot = minecraftBot;
-
+export function startApiServer(port: number): void {
     const app = express();
     app.use(cors());
     app.use(express.json());
 
     // Endpoint to get the bot's status
-    app.get('/status', (req, res) => {
-        if (!bot) {
+    app.get('/:bot/status', (req, res) => {
+        const bot = bots.get(req.params.bot);
+
+        if (!bot?.bot) {
             return res.status(500).json({ error: 'Bot is not initialized' });
         }
-        const pos = bot.entity.position;
-        const inventory = bot.inventory.items().map(item => ({
+        const pos = bot.bot.entity.position;
+        const inventory = bot.bot.inventory.items().map(item => ({
             id: item.type,
             count: item.count,
             slot: item.slot,
             name: item.name,
         }));
-        const nearbyBlocks = scanNearbyBlocks(bot);
-        const nearbyEntities = scanNearbyEntities(bot);
+        const nearbyBlocks = scanNearbyBlocks(bot.bot);
+        const nearbyEntities = scanNearbyEntities(bot.bot);
 
         res.json({
-            status: botStatus,
-            lastActionResult: lastActionResult,
+            status: bot.status,
+            lastActionResult: bot.lastActionResult,
             position: { x: pos.x, y: pos.y, z: pos.z },
-            health: bot.health,
-            food: bot.food,
+            health: bot.bot.health,
+            food: bot.bot.food,
             inventory,
             nearbyBlocks,
             nearbyEntities,
@@ -72,69 +75,113 @@ export function startApiServer(minecraftBot: Bot, port: number = getConfig().ser
     });
 
     // Endpoint to build a level based on the provided csv level description
-    app.post('/build-level', async (req, res) => {
-        if (!bot) {
+    app.post('/:bot/build-level', async (req, res) => {
+        const bot = bots.get(req.params.bot);
+
+        if (!bot?.bot) {
             return res.status(500).json({ error: 'Bot is not initialized' });
         }
         const { level_csv, x, y, z } = req.body;
         if (!level_csv || x === undefined || y === undefined || z === undefined) {
             return res.status(400).json({ error: 'Missing required parameters' });
         }
-        botStatus = 'BUSY';
+        bot.status = 'BUSY';
         try {
             const location = new Vec3(x, y, z);
-            map = await buildLevel(bot, level_csv, location);
-            lastLevelCsv = level_csv;
-            lastLocation = location;
-            res.json({ success: true, tags: serializeTags(map) });
-        } catch (err : any) {
-            botStatus = 'IDLE';
+            bot.map = await buildLevel(bot.bot, level_csv, location);
+            bot.lastLevelCsv = level_csv;
+            bot.lastLocation = location;
+            res.json({ success: true, tags: serializeTags(bot.map) });
+        } catch (err: any) {
+            bot.status = 'IDLE';
             res.status(500).json({ error: 'Failed to build level' });
         } finally {
-            botStatus = 'IDLE';
+            bot.status = 'IDLE';
         }
     });
 
     // Return the current tag map (tag name -> position or entity UUID).
-    app.get('/tags', (req, res) => {
-        res.json({ tags: serializeTags(map) });
+    app.get('/:bot/tags', (req, res) => {
+        const bot = bots.get(req.params.bot);
+        if (!bot?.bot) {
+            return res.status(500).json({ error: 'Bot is not initialized' });
+        }
+        res.json({ tags: serializeTags(bot.map) });
     });
 
 
     // Return the health of the mob from the UUID
-    app.get('/tags/:uuid', async (req, res) => {
-        if (!bot) {
+    app.get('/:bot/tags/:uuid', async (req, res) => {
+        const bot = bots.get(req.params.bot);
+        if (!bot?.bot) {
             return res.status(500).json({ error: 'Bot is not initialized' });
         }
-        const health = await getMobHealth(bot, req.params.uuid as UUID);
+        const health = await getMobHealth(bot.bot, req.params.uuid as UUID);
         res.json({ health: health });
+    });
+
+    app.post('/:bot/join/:address', async (req, res) => {
+        let bot = bots.get(req.params.bot);
+        if (bot?.bot) {
+            bot.bot.quit();
+        }
+
+        if (!bot){
+            bot = {} as BotEntry;
+        }
+
+        try {
+            bot.bot = await initBot(req.params.bot, req.params.address);
+            console.log()
+        } catch (err: any) {
+            res.status(500).json({ error: 'Failed to create bot' });
+            return;
+        }
+        bots.set(req.params.bot, bot);
+        res.json({ success: true });
+    });
+
+    app.delete('/:bot/', async (req, res) => {
+        let bot = bots.get(req.params.bot);
+        if (!bot){
+            return;
+        }
+
+        if (bot?.bot) {
+            await bot.bot.quit();
+        }
+
+        bots.delete(req.params.bot);
+        res.json({ success: true });
     });
 
 
     // Reset agent by rebuild the last built level
-    app.post('/reset', async (req, res) => {
-        if (!bot) {
+    app.post('/:bot/reset', async (req, res) => {
+        const bot = bots.get(req.params.bot);
+        if (!bot?.bot) {
             return res.status(500).json({ error: 'Bot is not initialized' });
         }
-        if (!lastLevelCsv || !lastLocation) {
+        if (!bot.lastLevelCsv || !bot.lastLocation) {
             return res.status(400).json({ error: 'No level has been built yet' });
         }
-        if (botStatus !== 'IDLE') {
+        if (bot.status !== 'IDLE') {
             return res.status(409).json({ status: 'busy', note: 'bot already busy' });
         }
-        botStatus = 'BUSY';
+        bot.status = 'BUSY';
         try {
-            map = await buildLevel(bot, lastLevelCsv, lastLocation);
-            res.json({ success: true, tags: serializeTags(map) });
+            bot.map = await buildLevel(bot.bot, bot.lastLevelCsv, bot.lastLocation);
+            res.json({ success: true, tags: serializeTags(bot.map) });
         } catch (err: any) {
             res.status(500).json({ error: 'Failed to reset level' });
         } finally {
-            botStatus = 'IDLE';
+            bot.status = 'IDLE';
         }
     });
 
-    app.post('/action', async (req, res) => {
-        if (!bot) {
+    app.post('/:bot/action', async (req, res) => {
+        const bot = bots.get(req.params.bot);
+        if (!bot?.bot) {
             return res.status(500).json({ error: 'Bot is not initialized' });
         }
 
@@ -142,7 +189,7 @@ export function startApiServer(minecraftBot: Bot, port: number = getConfig().ser
             return res.status(400).json({ error: 'Missing action json' });
         }
 
-        if (botStatus !== 'IDLE') {
+        if (bot.status !== 'IDLE') {
             return res.status(409).json({ status: 'busy', note: 'bot already busy' });
         }
 
@@ -155,17 +202,17 @@ export function startApiServer(minecraftBot: Bot, port: number = getConfig().ser
 
         // Execute synchronously and return the outcome, so an external controller
         // (e.g. an aplib agent) gets the result in the same request/response.
-        botStatus = action.name;
+        bot.status = action.name;
         try {
-            const raw = await action.execute(bot, map);
+            const raw = await action.execute(bot.bot, bot.map);
             // Actions may return a boolean outcome or nothing (void).
             const result: boolean | null = typeof raw === 'boolean' ? raw : null;
-            lastActionResult = action.expect_result === undefined || action.expect_result === result;
-            botStatus = 'IDLE';
-            return res.status(200).json({ name: action.name, result, passed: lastActionResult });
+            bot.lastActionResult = action.expect_result === undefined || action.expect_result === result;
+            bot.status = 'IDLE';
+            return res.status(200).json({ name: action.name, result, passed: bot.lastActionResult });
         } catch (e) {
-            botStatus = 'IDLE';
-            lastActionResult = false;
+            bot.status = 'IDLE';
+            bot.lastActionResult = false;
             return res.status(500).json({ name: action.name, error: String(e), result: null, passed: false });
         }
     });
@@ -174,6 +221,7 @@ export function startApiServer(minecraftBot: Bot, port: number = getConfig().ser
         console.log(`Minecraft API server is running on http://localhost:${port}`);
     });
 }
+
 
 
 
@@ -203,9 +251,9 @@ function scanNearbyBlocks(botInstance: Bot): Array<{ id: string; position: { x: 
                 }
             }
         }
-    }  
+    }
 
-    return nearbyBlocks;    
+    return nearbyBlocks;
 }
 
 

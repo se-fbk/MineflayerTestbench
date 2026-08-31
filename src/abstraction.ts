@@ -14,7 +14,7 @@ import { getConfig } from './config.js';
 let movement: Movements;
 
 export function setMovements(bot: Bot) {
-    const defaultMove: Movements = new pathfinder.Movements(bot);
+    const defaultMove: Movements = new Movements(bot);
 
     // can't break or place blocks while pathfinding
     defaultMove.canDig = false;
@@ -142,6 +142,7 @@ export async function attack(bot: Bot, target: UUID) {
     if (!entity) {
         return false;
     }
+    await bot.lookAt(entity.position);
     await bot.attack(entity);
     return true;
 }

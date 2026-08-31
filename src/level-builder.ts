@@ -1,5 +1,5 @@
 import fs from 'fs';
-import csv from '@fast-csv/parse';
+import csv, { parseString } from '@fast-csv/parse';
 import nbtts from "nbt-ts";
 import { Vec3 } from 'vec3';
 import type { Bot } from 'mineflayer';
@@ -7,11 +7,11 @@ import { UUID } from 'crypto';
 import { getConfig } from './config.js';
 
 // Coords should be a vec3 of the bottom xyz corner of the level
-async function buildLevel(bot: Bot, csv_file: string, coords: Vec3): Promise<Record<string, Vec3 | UUID>> {
+async function buildLevel(bot: Bot, csv_content: string, coords: Vec3): Promise<Record<string, Vec3 | UUID>> {
     bot.chat('/gamemode spectator @s');
     bot.chat(`/tp @s ${coords.x} ${coords.y} ${coords.z}`);
 
-    const [inventory, structure] = await loadCsv(csv_file);
+    const [inventory, structure] = await process_level(csv_content);
 
     const playerY = structure.findIndex(layer =>
         layer.some(row =>
@@ -19,7 +19,7 @@ async function buildLevel(bot: Bot, csv_file: string, coords: Vec3): Promise<Rec
         )
     );
 
-    if ( playerY == -1 ){
+    if (playerY == -1) {
         throw new Error("Invalid level, must specify player position");
     }
 
@@ -124,15 +124,14 @@ async function buildLevel(bot: Bot, csv_file: string, coords: Vec3): Promise<Rec
     return map;
 }
 
-async function loadCsv(csv_file: string): Promise<[string[][], string[][][]]> {
+async function process_level(csv: string): Promise<[string[][], string[][][]]> {
     const inventory: string[][] = [];
     const structure: string[][][] = [];
     let current_layer: string[][] = [];
 
     await new Promise((resolve) => {
         let dest = inventory;
-        fs.createReadStream(csv_file)
-            .pipe(csv.parse({ headers: false }))
+        parseString(csv, { headers: false })
             .on('data', (row) => {
                 // "|" symbol is use to separate vertical layers in the y layer
                 if (row[0]?.startsWith('|')) {
