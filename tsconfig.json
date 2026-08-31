@@ -1,27 +1,24 @@
 {
-    "compilerOptions": {
-        "module": "nodenext",
-        "moduleResolution": "nodenext",
-        "target": "es2024",
-        "outDir": "./dist",
-        "rootDir": "./src",
-        "declaration": true,
-        "removeComments": true,
-        "allowJs": true,
-        "incremental": true,
-        "esModuleInterop": true,
-        "strict": true,
-        "typeRoots": [
-            "./node_modules/@types",
-            "./src/@types"
-        ],
-        "skipLibCheck": true
-    },
-    "include": [
-        "src/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+	"compilerOptions": {
+		"module": "nodenext",
+		"declaration": true,
+		"removeComments": true,
+		"allowSyntheticDefaultImports": true,
+		"target": "ES2024",
+		"outDir": "./dist",
+		"allowJs": true,
+		"rootDir": "./src",
+		"incremental": true,
+		"esModuleInterop": true,
+		"strict": true,
+		"typeRoots": [
+			"node_modules/@types",
+			"src/@types"
+		],
+		"skipLibCheck": true
+	},
+	"exclude": [
+		"node_modules",
+		"dist"
+	]
 }
