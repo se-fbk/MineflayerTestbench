@@ -1,4 +1,4 @@
-diamond_pickaxe,iron_axe,stone 64,anvil 10,,
+diamond_pickaxe,iron_axe,stone 64,anvil 10, oak_log 12,
 acacia_boat,cake,,,,
 /say hi
 |stone,stone,stone,stone,stone,stone
@@ -12,7 +12,7 @@ stone,stone,stone,stone,stone,stone
 stone,stone,stone,stone,stone,stone
 stone,stone,stone,stone,stone,stone
 stone,stone,stone,stone,stone,stone
-stone,stone,stone,stone,stone^stone_to_dig,stone
+stone,stone,stone,stone^place_crafting,stone^stone_to_dig,stone
 stone,stone,stone,stone,stone,stone
 stone,stone,stone,stone,stone,stone
 |iron_block,iron_block,iron_block^place,iron_block,iron_block,iron_block
@@ -26,7 +26,7 @@ stone,stone,stone,stone,stone,stone
 ,,,,,iron_block
 ,,,,,iron_block
 waxed_copper_bulb^bulb,acacia_button[facing=east]^btn,,,,iron_block
-,,,,,iron_block
+,,,^crafting_table,,iron_block
 ,,,,,iron_block
 ,,,,,iron_block
 |iron_block,,,,,

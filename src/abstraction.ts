@@ -2,6 +2,7 @@ import type { Bot } from 'mineflayer';
 import { Block } from 'prismarine-block';
 import type { Entity } from 'prismarine-entity';
 import { Item } from 'prismarine-item';
+import { Recipe } from 'prismarine-recipe'
 import pathfinder, { Movements } from 'mineflayer-pathfinder';
 import nbtts from "nbt-ts";
 
@@ -240,7 +241,7 @@ export async function checkEntity(bot: Bot, target: UUID, nbt?: string, health?:
     })
 }
 
-export async function checkAdvancement(bot: Bot, advancement:string): Promise<boolean> {
+export async function checkAdvancement(bot: Bot, advancement: string): Promise<boolean> {
     return new Promise((resolve) => {
         const timeout = setTimeout(() => {
             resolve(false);
@@ -272,7 +273,7 @@ export async function getMobHealth(bot: Bot, target: UUID): Promise<number | nul
         bot.once("message", (msg) => {
             clearTimeout(timeout);
             if (msg?.translate === "commands.data.entity.query") {
-                resolve( + msg.json.with[1].extra[0].text);
+                resolve(+ msg.json.with[1].extra[0].text);
             } else {
                 resolve(null);
             }
@@ -354,7 +355,7 @@ export async function checkInventory(bot: Bot, item_id: string, count?: number, 
 
 export async function craft(bot: Bot, item_name: string, crafting_table?: Vec3, count: number = 1, verbose?: boolean): Promise<boolean> {
     const item = bot.registry.itemsByName[item_name];
-    if (!item){
+    if (!item) {
         if (verbose) {
             console.log(`Item "${item_name}" not found`);
         }
@@ -362,25 +363,35 @@ export async function craft(bot: Bot, item_name: string, crafting_table?: Vec3, 
     }
 
     let crafting_table_block: Block | null = null;
-    if (crafting_table){
+    if (crafting_table) {
         crafting_table_block = bot.blockAt(crafting_table);
-        if (!crafting_table_block){
-            if (verbose) console.log(`No block found at ${crafting_table}`);
+        if (verbose) {
+            console.log(`Block at ${crafting_table_block?.position} is ${crafting_table_block}`);
+        }
+        if (!crafting_table_block) {
             return false;
         }
     }
 
-    const recipes = bot.recipesAll(item.id, null, crafting_table_block);
-    if (!recipes.length){
+    const recipe = bot.recipesFor(item.id, null, count, crafting_table_block)[0];
+
+    if (!recipe) {
         if (verbose) console.log(`No recipes found for ${item_name}` + crafting_table_block ? " without crafting table" : "");
         return false;
     }
 
-    if (verbose) {
-        console.log(`Attempting to craft ${count}x${item.name}`);
+    if (!recipe.requiresTable) {
+        crafting_table_block = null;
     }
 
-    await bot.craft(recipes[0], count, crafting_table_block || undefined);
+    const actual_count = Math.ceil(count / recipe.result.count);
+
+    if (verbose) {
+        console.log(`Attempting to craft ${actual_count * recipe.result.count} x ${item.name}`);
+    }
+
+    await bot.craft(recipe, actual_count, crafting_table_block || undefined);
+    await bot.waitForTicks(1);
     return true;
 }
 

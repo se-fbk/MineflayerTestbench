@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Bot } from 'mineflayer';
 
-import { attack, breakBlock, click, moveTo, selectItem, craft, pickUpLoot, placeBlockOn, useOnEntity, checkBlock, checkEntity, anvil, checkInventory, sneak, checkAdvancement } from './abstraction.js'
+import { attack, breakBlock, click, moveTo, selectItem, craft, pickUpLoot, placeBlockOn, useOnEntity, checkBlock, checkEntity, anvil, checkInventory, sneak, checkAdvancement, jump } from './abstraction.js'
 import { Vec3 } from 'vec3';
 
 
@@ -57,6 +57,16 @@ const Sneak = ActionSchema.extend({
     ...data,
     execute: async (bot: Bot, map: any) => {
         return await sneak(bot, data.state)
+    }
+}))
+
+
+const Jump = ActionSchema.extend({
+    name: z.literal("jump"),
+}).transform((data) => ({
+    ...data,
+    execute: async (bot: Bot, map: any) => {
+        return await jump(bot)
     }
 }))
 
@@ -128,6 +138,17 @@ const Click = ActionSchema.extend({
     ...data,
     execute: async (bot: Bot, map: any) => {
         return await click(bot, getTarget(data.target, map));
+    }
+}))
+
+
+const UseOnEntity = ActionSchema.extend({
+    name: z.literal("use_on_entity"),
+    target: Target,
+}).transform((data) => ({
+    ...data,
+    execute: async (bot: Bot, map: any) => {
+        return await useOnEntity(bot, getTarget(data.target, map));
     }
 }))
 
@@ -220,7 +241,7 @@ const Pass = ActionSchema.extend({
 }).transform((data) => ({
     ...data,
     execute: async (bot: Bot, map: any) => {
-        return;
+        return true;
     }
 }))
 
@@ -246,6 +267,8 @@ export const DiscriminizedAction = z.discriminatedUnion("name", [
     Craft,
     Attack,
     Sneak,
+    UseOnEntity,
+    Jump,
     AnvilOperation,
     
     // check
