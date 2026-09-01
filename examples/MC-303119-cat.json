@@ -1,0 +1,52 @@
+{
+    "meta": {
+        "id": "Cat feefing test",
+        "time": "2026-09-04T11:42",
+        "x": 16,
+        "y": 65,
+        "z": 0,
+        "username": "meowbot",
+        "address": "localhost",
+        "level_csv": "examples/MC-303119-cat.csv",
+        "output_csv": "debug_log.csv"
+    },
+    "test_cases": [
+        {
+            "id": "test_1",
+            "actions": [
+                {
+                    "name": "use_on_entity",
+                    "target": "cat"
+                },
+                {
+                    "name": "check_inventory",
+                    "item": "cod",
+                    "count": 1,
+                    "expect_result": true
+                },
+                {
+                    "name": "check_entity",
+                    "target": "cat",
+                    "health": 3.0,
+                    "expect_result": true
+                },
+                {
+                    "name": "use_on_entity",
+                    "target": "cat"
+                },
+                {
+                    "name": "check_inventory",
+                    "item": "cod",
+                    "count": 0,
+                    "expect_result": true
+                },
+                {
+                    "name": "check_entity",
+                    "target": "cat",
+                    "health": 5.0,
+                    "expect_result": true
+                }
+            ]
+        }
+    ]
+}

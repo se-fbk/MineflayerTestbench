@@ -1,0 +1,8 @@
+cod 2,,
+/data modify entity @n[tag=BugTest] Owner set from entity @s UUID,,
+|iron_block, iron_block, iron_block
+iron_block, diamond_block, iron_block
+iron_block, iron_block, iron_block
+|,,
+,"@cat{Tags:[BugTest],Sitting:1b,Health:1}^cat",
+,@player,

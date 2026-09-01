@@ -153,6 +153,7 @@ export async function useOnEntity(bot: Bot, target: UUID) {
     if (!entity) {
         return false;
     }
+    await bot.lookAt(entity.position)
     await bot.useOn(entity);
     return true;
 }
