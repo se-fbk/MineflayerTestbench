@@ -18,7 +18,7 @@
     "mineflayer-pathfinder": "^2.4.5",
     "nbt-ts": "^2.0.2",
     "vec3": "^0.2.0",
-    "zod": "4.4.3"
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
