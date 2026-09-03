@@ -12,7 +12,7 @@ stone,stone,stone,stone,stone,stone
 stone,stone,stone,stone,stone,stone
 stone,stone,stone,stone,stone,stone
 stone,stone,stone,stone,stone,stone
-stone,stone,stone,stone^place_crafting,stone^stone_to_dig,stone
+stone,stone,stone,stone,stone^stone_to_dig,stone
 stone,stone,stone,stone,stone,stone
 stone,stone,stone,stone,stone,stone
 |iron_block,iron_block,iron_block^place,iron_block,iron_block,iron_block
@@ -39,7 +39,7 @@ iron_block,,,,,
 iron_block,,,,,
 iron_block,,,,,
 iron_block,,,,,
-iron_block,,,,,
+iron_block,,^midair,,,
 iron_block,,,,,
 iron_block,,,,,
 iron_block,iron_block,iron_block,minecraft:glowstone,iron_block,iron_block

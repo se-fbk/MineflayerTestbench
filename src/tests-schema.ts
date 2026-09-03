@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { Bot } from 'mineflayer';
 
-import { attack, breakBlock, click, moveTo, selectItem, craft, pickUpLoot, placeBlockOn, useOnEntity, checkBlock, checkEntity, anvil, checkInventory, sneak, checkAdvancement, jump } from './abstraction.js'
+import { attack, breakBlock, click, moveTo, selectItem, craft, pickUpLoot, placeBlockOn, useOnEntity, checkBlock, checkEntity, anvil, checkInventory, sneak, checkAdvancement, jump, rawBlockPlace } from './abstraction.js'
 import { Vec3 } from 'vec3';
 
 
@@ -81,13 +81,23 @@ const PickUpLoot = ActionSchema.extend({
 }))
 
 const PlaceBlockOn = ActionSchema.extend({
-    name: z.literal("place"),
+    name: z.literal("place_on"),
     target: Target,
     face: z.string(),
 }).transform((data) => ({
     ...data,
     execute: async (bot: Bot, map: any) => {
         return await placeBlockOn(bot, getTarget(data.target, map), data.face, data.verbose);
+    }
+}))
+
+const RawPlace = ActionSchema.extend({
+    name: z.literal("place"),
+    target: Target,
+}).transform((data) => ({
+    ...data,
+    execute: async (bot: Bot, map: any) => {
+        return await rawBlockPlace(bot, getTarget(data.target, map));
     }
 }))
 
@@ -262,6 +272,7 @@ export const DiscriminizedAction = z.discriminatedUnion("name", [
     MoveTo,
     Break,
     PickUpLoot,
+    RawPlace,
     PlaceBlockOn,
     Click,
     Craft,

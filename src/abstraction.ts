@@ -171,6 +171,27 @@ export async function placeBlockOn(bot: Bot, pos: Vec3, side: string = "top", ve
     return bot.blockAt(pos)?.type == old_block.type;
 }
 
+export async function rawBlockPlace(bot: Bot, pos: Vec3) {
+    const old_block = bot.blockAt(pos);
+
+    await bot._client.write('block_place', {
+        hand: 0, // 0: Main Hand, 1: Off Hand
+        location: {
+            x: pos.x,
+            y: pos.y,
+            z: pos.z
+        },
+        direction: 0,
+        cursorX: 0.5,
+        cursorY: 0.0,
+        cursorZ: 0.5,
+        insideBlock: false,
+    });
+
+    bot.waitForTicks(1);
+    return bot.blockAt(pos)?.type == old_block?.type;
+}
+
 export async function jump(bot: Bot) {
     bot.setControlState("jump", true);
     await bot.waitForTicks(1);

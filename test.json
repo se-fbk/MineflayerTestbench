@@ -35,7 +35,7 @@
                     "item": "cake"
                 },
                 {
-                    "name": "place",
+                    "name": "place_on",
                     "target": "below_chest",
                     "face": "top"
                 },
@@ -44,7 +44,7 @@
                     "item": "stone"
                 },
                 {
-                    "name": "place",
+                    "name": "place_on",
                     "target": "place",
                     "face": "south"
                 },
@@ -198,8 +198,7 @@
                 },
                 {
                     "name": "place",
-                    "target": "place_crafting",
-                    "face": "top",
+                    "target": "crafting_table",
                     "expect_result": true
                 },
                 {
@@ -226,6 +225,19 @@
                 {
                     "name": "sneak",
                     "state": true
+                },
+                {
+                    "name": "select",
+                    "item": "oak_log"
+                },
+                {
+                    "name": "place",
+                    "target": "midair" 
+                },
+                {
+                    "name": "check_block",
+                    "target": "midair",
+                    "expected": "oak_log"
                 },
                 {
                     "name": "wait",
