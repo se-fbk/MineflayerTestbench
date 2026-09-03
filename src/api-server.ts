@@ -64,6 +64,7 @@ export function startApiServer(port: number): void {
 
         res.json({
             status: bot.status,
+            version: bot.bot.version,
             lastActionResult: bot.lastActionResult,
             position: { x: pos.x, y: pos.y, z: pos.z },
             health: bot.bot.health,
