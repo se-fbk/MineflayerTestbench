@@ -205,11 +205,10 @@ export function startApiServer(port: number): void {
         // (e.g. an aplib agent) gets the result in the same request/response.
         bot.status = action.name;
         try {
-            //wait for 1 tick before executing the action to ensure environment is updated
+            const result = await action.execute(bot.bot, bot.map);
+            //wait for 1 tick after executing the action to ensure environment is updated
             await bot.bot.waitForTicks(1);
-            const raw = await action.execute(bot.bot, bot.map);
             // Actions may return a boolean outcome or nothing (void).
-            const result: boolean | null = typeof raw === 'boolean' ? raw : null;
             bot.lastActionResult = action.expect_result === undefined || action.expect_result === result;
             bot.status = 'IDLE';
             return res.status(200).json({ name: action.name, result, passed: bot.lastActionResult });

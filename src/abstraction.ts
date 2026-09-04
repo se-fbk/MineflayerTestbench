@@ -168,28 +168,27 @@ export async function placeBlockOn(bot: Bot, pos: Vec3, side: string = "top", ve
 
     await bot.placeBlock(old_block, face);
 
-    return bot.blockAt(pos)?.type == old_block.type;
+    return true;
+}
+
+
+// spoof to expose internal method
+interface ExtendedBot extends Bot {
+    _genericPlace: (
+        referenceBlock: Block,
+        faceVector: Vec3,
+        options: any
+    ) => Promise<void>;
 }
 
 export async function rawBlockPlace(bot: Bot, pos: Vec3) {
     const old_block = bot.blockAt(pos);
-
-    await bot._client.write('block_place', {
-        hand: 0, // 0: Main Hand, 1: Off Hand
-        location: {
-            x: pos.x,
-            y: pos.y,
-            z: pos.z
-        },
-        direction: 0,
-        cursorX: 0.5,
-        cursorY: 0.0,
-        cursorZ: 0.5,
-        insideBlock: false,
-    });
-
-    bot.waitForTicks(1);
-    return bot.blockAt(pos)?.type == old_block?.type;
+    if (!old_block) {
+        return false;
+    }
+     
+    await (bot as ExtendedBot)._genericPlace(old_block, pos, { delta: new Vec3(0, 0, 0)});
+    return true;
 }
 
 export async function jump(bot: Bot) {
@@ -215,6 +214,8 @@ export async function checkBlock(bot: Bot, block: Vec3, expeced_block?: string, 
         console.log(`client side block at ${block} is`);
         console.log(bot.blockAt(block));
     }
+
+    await bot.waitForTicks(1);
 
     return new Promise((resolve) => {
         const timeout = setTimeout(() => {
@@ -244,6 +245,8 @@ export async function checkEntity(bot: Bot, target: UUID, nbt?: string, health?:
         snbt = nbtts.stringify(p_nbt);
     }
 
+    await bot.waitForTicks(1);
+
     return new Promise((resolve) => {
         const timeout = setTimeout(() => {
             resolve(false);
@@ -264,6 +267,7 @@ export async function checkEntity(bot: Bot, target: UUID, nbt?: string, health?:
 }
 
 export async function checkAdvancement(bot: Bot, advancement: string): Promise<boolean> {
+    await bot.waitForTicks(1);
     return new Promise((resolve) => {
         const timeout = setTimeout(() => {
             resolve(false);
@@ -285,7 +289,7 @@ export async function checkAdvancement(bot: Bot, advancement: string): Promise<b
 
 
 export async function getMobHealth(bot: Bot, target: UUID): Promise<number | null> {
-
+    await bot.waitForTicks(1);
     return new Promise((resolve) => {
         const timeout = setTimeout(() => {
             resolve(null);
@@ -351,6 +355,12 @@ export async function checkInventory(bot: Bot, item_id: string, count?: number, 
 
     const command = `/execute if items entity @s container.* ${item_id}[${components?.join(",") || ""}]`;
 
+    if (verbose) {
+        console.log(command);
+    }
+
+    await bot.waitForTicks(1);
+
     return new Promise((resolve) => {
         const timeout = setTimeout(() => {
             resolve(false);
@@ -364,6 +374,11 @@ export async function checkInventory(bot: Bot, item_id: string, count?: number, 
                     resolve(true);
                     return;
                 }
+
+                if (verbose) {
+                    console.log(`Result: ${msg.json.with[0]}`);
+                }
+
                 resolve(msg.json.with[0] == count);
             } else {
                 // if none are found, should return true if we expect to find zero items
