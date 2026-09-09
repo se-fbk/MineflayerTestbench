@@ -4,8 +4,8 @@ import type { ChatMessage } from 'prismarine-chat'
 async function isOp(bot: Bot): Promise<boolean | null> {
     return new Promise((resolve) => {
         bot.once("message", (message: ChatMessage) => {
-            const translation: string | undefined = message?.extra?.[0]?.translate;
-
+            const translation: string | undefined = message?.extra?.[0]?.translate || message?.json?.extra?.translate || message?.json?.translate;
+            //console.log(JSON.stringify(message));
             if (!translation || translation === 'command.unknown.command') {
                 resolve(false);
                 return;

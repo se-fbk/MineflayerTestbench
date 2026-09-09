@@ -27,16 +27,24 @@ export async function initBot(name: string, address: string | null): Promise<Bot
         });
 
         bot.once('spawn', async () => {
+            await bot.waitForTicks(getConfig().bot.spawnSettleTicks);
+
             if (!await isOp(bot)) {
-                bot.chat('bot is not OP on the server please run the following command:');
-                bot.chat(`op ${bot.username}`);
-                await waitForOp(bot);
-                bot.chat('Bot is successfully op:');
+                if (bot._client.isServer){
+                    bot.chat('bot is not OP on the server please run the following command:');
+                    bot.chat(`op ${bot.username}`);
+                    await waitForOp(bot);
+                    bot.chat('Bot is successfully op:');
+                } else {
+                    bot.chat("LAN world detected, please restart with commands enabled.");
+                    await bot.quit();
+                    reject(new Error("Commands not enabled in LAN world"));
+                }
             }
             // this tag will be used later
             bot.chat('/tag @s add bot');
 
-            await bot.waitForTicks(getConfig().bot.spawnSettleTicks);
+
             setMovements(bot);
 
             console.log(`MineflayerTestbed running on ${bot.version} server`)
