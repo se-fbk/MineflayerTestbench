@@ -1,5 +1,4 @@
-import fs from 'fs';
-import csv, { parseString } from '@fast-csv/parse';
+import { parseString } from '@fast-csv/parse';
 import nbtts from "nbt-ts";
 import { Vec3 } from 'vec3';
 import type { Bot } from 'mineflayer';
@@ -72,7 +71,7 @@ async function buildLevel(bot: Bot, csv_content: string, coords: Vec3): Promise<
                 // if it starts with @ it's an entity
                 if (thing[0] === "@") {
                     let entity_id: string = thing.substring(1);
-                    let uuid = await summonEntity(entity_id, pos, bot, tag);
+                    let uuid = summonEntity(entity_id, pos, bot, tag);
                     if (tag && uuid) {
                         map[tag] = uuid;
                     }

@@ -2,7 +2,6 @@ import type { Bot } from 'mineflayer';
 import { Block } from 'prismarine-block';
 import type { Entity } from 'prismarine-entity';
 import { Item } from 'prismarine-item';
-import { Recipe } from 'prismarine-recipe'
 import pathfinder, { Movements } from 'mineflayer-pathfinder';
 import nbtts from "nbt-ts";
 
@@ -186,7 +185,7 @@ export async function rawBlockPlace(bot: Bot, pos: Vec3) {
     if (!old_block) {
         return false;
     }
-     
+
     await (bot as ExtendedBot)._genericPlace(old_block, pos, { delta: new Vec3(0, 0, 0)});
     return true;
 }
@@ -419,15 +418,17 @@ export async function craft(bot: Bot, item_name: string, crafting_table?: Vec3, 
 
     if (!recipe.requiresTable) {
         crafting_table_block = null;
+    } else if (crafting_table_block === null || crafting_table_block.type !== bot.registry.blocksByName.crafting_table.id){
+        return false;
     }
 
-    const actual_count = Math.ceil(count / recipe.result.count);
+    const crafting_count = Math.ceil(count / recipe.result.count);
 
     if (verbose) {
-        console.log(`Attempting to craft ${actual_count * recipe.result.count} x ${item.name}`);
+        console.log(`Attempting to craft ${crafting_count * recipe.result.count} x ${item.name}`);
     }
 
-    await bot.craft(recipe, actual_count, crafting_table_block || undefined);
+    await bot.craft(recipe, crafting_count, crafting_table_block || undefined);
     await bot.waitForTicks(1);
     return true;
 }
