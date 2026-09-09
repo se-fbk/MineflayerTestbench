@@ -24,7 +24,7 @@ async function buildLevel(bot: Bot, csv_content: string, coords: Vec3): Promise<
     }
 
     // dy must be tall enough to fit the player
-    const dy: number = Math.max(playerY + 2, structure.length);
+    const dy: number = Math.max(playerY + 3, structure.length);
 
     // find longest row for the z dimension
     const dz: number = Math.max(3, ...structure.map((layer: string[][]) => layer.length));
@@ -43,7 +43,7 @@ async function buildLevel(bot: Bot, csv_content: string, coords: Vec3): Promise<
     bot.chat('/advancement revoke @s everything');
     // execute the kill command multiple times to also kill any items the entities may have dropped
     // also to handle slimes
-    const kill_cmd = `/kill @e[type=!minecraft:player, x=${coords.x - 1}, y=${coords.y - 1}, z=${coords.z - 1}, dx=${dx}, dy=${dy}, dz=${dz}]`
+    const kill_cmd = `/kill @e[type=!minecraft:player, x=${coords.x - 1}, y=${coords.y - 1}, z=${coords.z - 1}, dx=${dx+1}, dy=${dy+1}, dz=${dz+1}]`
     bot.chat(kill_cmd);
     bot.chat(kill_cmd);
     bot.chat(kill_cmd);
