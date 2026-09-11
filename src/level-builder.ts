@@ -65,6 +65,9 @@ async function buildLevel(bot: Bot, csv_content: string, coords: Vec3): Promise<
 
                 if (thing == "@player") {
                     bot.chat(`/tp @s ${pos.x} ${pos.y} ${pos.z}`)
+                    if (tag) {
+                        map[tag] = pos;
+                    }
                     continue;
                 }
 
