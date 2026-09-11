@@ -95,7 +95,7 @@ export function startApiServer(port: number): void {
             res.json({ success: true, tags: serializeTags(bot.map) });
         } catch (err: any) {
             bot.status = 'IDLE';
-            res.status(500).json({ error: 'Failed to build level' });
+            res.status(500).json({ error: 'Failed to build level ' + err });
         } finally {
             bot.status = 'IDLE';
         }
@@ -135,7 +135,7 @@ export function startApiServer(port: number): void {
             bot.bot = await initBot(req.params.bot, req.params.address);
             console.log()
         } catch (err: any) {
-            res.status(500).json({ error: 'Failed to create bot' });
+            res.status(500).json({ error: 'Failed to create bot ' + err });
             return;
         }
         bots.set(req.params.bot, bot);
@@ -198,7 +198,7 @@ export function startApiServer(port: number): void {
         try {
             action = DiscriminizedAction.parse(req.body);
         } catch (e) {
-            return res.status(400).json({ error: String(e) });
+            return res.status(400).json({ error: String(e), string: req.body});
         }
 
         // Execute synchronously and return the outcome, so an external controller
