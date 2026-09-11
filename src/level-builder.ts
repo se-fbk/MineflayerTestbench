@@ -14,7 +14,7 @@ async function buildLevel(bot: Bot, csv_content: string, coords: Vec3): Promise<
 
     const playerY = structure.findIndex(layer =>
         layer.some(row =>
-            row.includes("@player")
+            row.some( cell => cell.match(/@player(\^.+)?/))
         )
     );
 
