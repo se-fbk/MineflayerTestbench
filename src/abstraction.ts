@@ -684,7 +684,7 @@ function uuidToEntity(bot: Bot, uuid: UUID): Entity | null {
 
 function findItem(bot: Bot, name: string, exclude?: [Item]): Item | null {
     const item_by_name = bot.inventory.items().find(item => {
-        const custom_name: string | undefined = (item as any)?.components.find((component: any) => component.type == "custom_name")?.data?.value;
+        const custom_name: string | undefined = (item as any)?.components?.find((component: any) => component.type == "custom_name" || item.customName)?.data?.value;
         return custom_name === name && !exclude?.includes(item)
     });
 
