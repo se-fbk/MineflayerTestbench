@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+import fs, { readdir } from 'node:fs'
 
 import { getArgs } from './args-parse.js';
 import { executeTests } from './tests-executer.js'
@@ -10,6 +10,9 @@ import { loadConfig } from './config.js';
 import { TestCasesSchema } from './tests-schema.js';
 import { exit } from 'node:process';
 import { initBot } from './init-bot.js';
+import { buildLevel } from './level-builder.js';
+import { Vec3 } from 'vec3';
+import { isOp } from './op-check.js';
 
 // setup command line args and defaults
 const args: any = getArgs();
@@ -25,6 +28,21 @@ if (tests_json) {
 const meta = parsed_tests?.meta;
 const output_csv_path: string | undefined = args?.output_csv || meta?.output_csv
 
+if (args?.build_level){
+    try {
+        const bot = await initBot(args?.username || "Bot", args?.address);
+        const csv_string = fs.readFileSync(args.build_level);
+        await buildLevel(bot, csv_string.toString(), new Vec3(0,64, 0));
+        if (!await isOp(bot)){
+            exit(1);
+        }
+        exit(0);
+
+    } catch {
+        exit(1);
+    }
+
+}
 
 if (args?.test) {
     const bot = await initBot(args?.username || meta?.username || "Bot", args?.address || meta?.address);
