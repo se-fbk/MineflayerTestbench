@@ -8,6 +8,8 @@ import { UUID } from "node:crypto";
 import { getConfig } from "./config.js";
 import { getMobHealth } from "./abstraction.js";
 import { initBot } from "./init-bot.js";
+import { getArgs } from "./args-parse.js";
+import { exit } from "node:process";
 
 interface BotEntry {
     bot: Bot;
@@ -20,6 +22,8 @@ interface BotEntry {
 }
 
 export const bots: Map<string, BotEntry> = new Map();
+
+const debug = !!getArgs().debug; 
 
 /**
  * Serialize the tag map (tag name -> position or entity UUID) into a plain
@@ -204,6 +208,10 @@ export function startApiServer(port: number): void {
             return res.status(400).json({ error: String(e), string: req.body});
         }
 
+        if (debug){
+            console.log(action);
+        }
+
         // Execute synchronously and return the outcome, so an external controller
         // (e.g. an aplib agent) gets the result in the same request/response.
         bot.status = action.name;
@@ -214,6 +222,12 @@ export function startApiServer(port: number): void {
             // Actions may return a boolean outcome or nothing (void).
             bot.lastActionResult = action.expect_result === undefined || action.expect_result === result;
             bot.status = 'IDLE';
+            if (debug){
+                console.log(result);
+                if (!bot.lastActionResult){
+                    console.log("!! FAILED !!");
+                }
+            }
             return res.status(200).json({ name: action.name, result, passed: bot.lastActionResult });
         } catch (e) {
             bot.status = 'IDLE';
