@@ -64,6 +64,9 @@ export function startApiServer(port: number): void {
             slot: item.slot,
             name: item.name,
         }));
+        // the item in the selected hotbar slot, null when the hand is empty
+        const held = bot.bot.heldItem;
+        const heldItem = held ? { id: held.type, count: held.count, slot: held.slot, name: held.name } : null;
         const nearbyBlocks = scanNearbyBlocks(bot.bot);
         const nearbyEntities = scanNearbyEntities(bot.bot);
 
@@ -76,6 +79,7 @@ export function startApiServer(port: number): void {
             food: bot.bot.food,
             deaths: bot.deaths,
             inventory,
+            heldItem,
             nearbyBlocks,
             nearbyEntities,
         });
@@ -249,14 +253,14 @@ export function startApiServer(port: number): void {
  * @param botInstance The Mineflayer bot instance
  * @returns An array of nearby blocks
  */
-function scanNearbyBlocks(botInstance: Bot): Array<{ id: string; position: { x: number; y: number; z: number } }> {
+function scanNearbyBlocks(botInstance: Bot): Array<{ id: string; position: { x: number; y: number; z: number }; properties: Record<string, string | number | boolean> }> {
     const scan = getConfig().scan;
     const pos = botInstance.entity.position;
     const cx = Math.floor(pos.x);
     const cy = Math.floor(pos.y);
     const cz = Math.floor(pos.z);
 
-    const nearbyBlocks: Array<{ id: string; position: { x: number; y: number; z: number } }> = [];
+    const nearbyBlocks: Array<{ id: string; position: { x: number; y: number; z: number }; properties: Record<string, string | number | boolean> }> = [];
 
     for (let x = cx - scan.radiusHorizontal; x <= cx + scan.radiusHorizontal; x++) {
         for (let y = cy - scan.heightBelowBot; y <= cy + scan.heightAboveBot; y++) {
@@ -266,6 +270,7 @@ function scanNearbyBlocks(botInstance: Bot): Array<{ id: string; position: { x: 
                     nearbyBlocks.push({
                         id: block.name,
                         position: { x, y, z },
+                        properties: block.getProperties(),
                     });
                 }
             }
@@ -281,7 +286,7 @@ function scanNearbyBlocks(botInstance: Bot): Array<{ id: string; position: { x: 
  * @param botInstance The Mineflayer bot instance
  * @returns An array of nearby entities
  */
-function scanNearbyEntities(botInstance: Bot): Array<{ name: string; uuid?: string; id: number; position: { x: number; y: number; z: number } }> {
+function scanNearbyEntities(botInstance: Bot): Array<{ name: string; uuid?: string; id: number; position: { x: number; y: number; z: number }; velocity: { x: number; y: number; z: number }; properties: Record<string, string | number | boolean> }> {
     const entityRadius = getConfig().scan.entityRadius;
     const pos = botInstance.entity.position;
     return Object.values(botInstance.entities)
@@ -298,5 +303,25 @@ function scanNearbyEntities(botInstance: Bot): Array<{ name: string; uuid?: stri
             uuid: (e as any).uuid,
             id: e.id,
             position: { x: e.position.x, y: e.position.y, z: e.position.z },
+            velocity: { x: e.velocity.x, y: e.velocity.y, z: e.velocity.z },
+            properties: entityProperties(botInstance, e),
         }));
+}
+
+/**
+ * Reads the metadata of an entity as named properties (ex {health: 20, is_powered: true})
+ * @param botInstance The Mineflayer bot instance
+ * @param entity The entity to read
+ * @returns The metadata of the entity, keyed by the metadata names of minecraft-data
+ */
+function entityProperties(botInstance: Bot, entity: Bot["entity"]): Record<string, string | number | boolean> {
+    const keys = botInstance.registry.entitiesByName[entity.name ?? '']?.metadataKeys ?? [];
+    const properties: Record<string, string | number | boolean> = {};
+
+    for (const [index, value] of Object.entries(entity.metadata as unknown as Record<string, unknown>)) {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')
+            properties[keys[Number(index)] ?? index] = value;
+    }
+
+    return properties;
 }
