@@ -112,7 +112,7 @@ The console should print `Minecraft API server is running on http://localhost:30
 
 | Method & path | Body | Returns |
 |---|---|---|
-| `GET /status` | — | bot `status` (`IDLE`/`BUSY`/last action name), `lastActionResult`, `position`, `health`, `food`, `inventory[]`, `nearbyBlocks[]`, `nearbyEntities[]` (each entity includes its `uuid` when available) |
+| `GET /status` | — | bot `status` (`IDLE`/`BUSY`/last action name), `lastActionResult`, `position`, `health`, `food`, `deaths`, `inventory[]`, `heldItem` (the item in the selected hotbar slot, `null` when the hand is empty), `nearbyBlocks[]` (each block includes its block state `properties`), `nearbyEntities[]` (each entity includes its `uuid` when available, its `velocity` and its metadata as `properties`) |
 | `POST /build-level` | `{ "level_csv", "x", "y", "z" }` | `{ "success": true, "tags": { … } }` — builds the level (see [Level format](#level-format)) and returns the tag map (tag → `{x,y,z}` position or `{uuid}`) |
 | `GET /tags` | — | `{ "tags": { … } }` — the tag map of the current level |
 | `POST /reset` | — | rebuilds the **most recently built** level and returns its `tags` |
