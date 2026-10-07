@@ -131,6 +131,19 @@ export function startApiServer(port: number): void {
         res.json({ health: health });
     });
 
+    // Return the state properties a block type can have, with the values of each one.
+    app.get('/:bot/blocks/:name', (req, res) => {
+        const bot = bots.get(req.params.bot);
+        if (!bot?.bot) {
+            return res.status(500).json({ error: 'Bot is not initialized' });
+        }
+        const properties = blockProperties(bot.bot, req.params.name);
+        if (!properties) {
+            return res.status(404).json({ error: `Unknown block: ${req.params.name}` });
+        }
+        res.json({ name: req.params.name, properties: properties });
+    });
+
     app.post('/:bot/join/:address', async (req, res) => {
         let bot = bots.get(req.params.bot);
         if (bot?.bot) {
@@ -324,4 +337,22 @@ function entityProperties(botInstance: Bot, entity: Bot["entity"]): Record<strin
     }
 
     return properties;
+}
+
+/**
+ * Lists the state properties of a block type (ex lever: face, facing, powered)
+ * @param botInstance The Mineflayer bot instance
+ * @param name The block name (ex "lever")
+ * @returns The properties with all their values, written as in the `properties` of
+ *          `nearbyBlocks` (booleans as booleans, the rest as strings), or null if the block is unknown
+ */
+function blockProperties(botInstance: Bot, name: string): Array<{ name: string; type: string; values: Array<string | boolean> }> | null {
+    const block = botInstance.registry.blocksByName[name];
+    if (!block) return null;
+    return (block.states ?? []).map(state => ({
+        name: state.name,
+        type: state.type,
+        // minecraft-data lists no values for booleans
+        values: state.type === 'bool' ? [true, false] : (state.values ?? []).map(String),
+    }));
 }
