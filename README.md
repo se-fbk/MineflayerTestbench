@@ -112,7 +112,7 @@ The console should print `Minecraft API server is running on http://localhost:30
 
 | Method & path | Body | Returns |
 |---|---|---|
-| `GET /status` | — | bot `status` (`IDLE`/`BUSY`/last action name), `lastActionResult`, `position`, `health`, `food`, `deaths`, `inventory[]`, `heldItem` (the item in the selected hotbar slot, `null` when the hand is empty), `nearbyBlocks[]` (each block includes its block state `properties`), `nearbyEntities[]` (each entity includes its `uuid` when available, its `velocity` and its metadata as `properties`) |
+| `GET /status` | — | bot `status` (`IDLE`/`BUSY`/last action name), `lastActionResult`, `position`, `health`, `food`, `deaths`, `inventory[]` (items that wear out, such as tools, weapons and armor, also carry `durabilityUsed` and `maxDurability`), `heldItem` (the item in the selected hotbar slot, with the same shape as an `inventory` entry, `null` when the hand is empty), `nearbyBlocks[]` (each block includes its block state `properties`), `nearbyEntities[]` (each entity includes its `uuid` when available, its `velocity` and its metadata as `properties`) |
 | `POST /build-level` | `{ "level_csv", "x", "y", "z" }` | `{ "success": true, "tags": { … } }` — builds the level (see [Level format](#level-format)) and returns the tag map (tag → `{x,y,z}` position or `{uuid}`) |
 | `GET /tags` | — | `{ "tags": { … } }` — the tag map of the current level |
 | `GET /blocks/:name` | — | `{ "name", "properties": [{ "name", "type", "values": [ … ] }] }` — the state properties a block type can have (e.g. `lever`: `face`, `facing`, `powered`), each with all its values, written as in the `properties` of `nearbyBlocks` (booleans as booleans, the rest as strings). `404` for an unknown block name |

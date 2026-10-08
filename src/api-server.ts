@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import type { Bot } from "mineflayer";
+import type { Item } from "prismarine-item";
 import { Vec3 } from "vec3";
 import { buildLevel } from "./level-builder.js";
 import { DiscriminizedAction } from "./tests-schema.js";
@@ -58,15 +59,10 @@ export function startApiServer(port: number): void {
             return res.status(500).json({ error: 'Bot is not initialized' });
         }
         const pos = bot.bot.entity.position;
-        const inventory = bot.bot.inventory.items().map(item => ({
-            id: item.type,
-            count: item.count,
-            slot: item.slot,
-            name: item.name,
-        }));
+        const inventory = bot.bot.inventory.items().map(serializeItem);
         // the item in the selected hotbar slot, null when the hand is empty
         const held = bot.bot.heldItem;
-        const heldItem = held ? { id: held.type, count: held.count, slot: held.slot, name: held.name } : null;
+        const heldItem = held ? serializeItem(held) : null;
         const nearbyBlocks = scanNearbyBlocks(bot.bot);
         const nearbyEntities = scanNearbyEntities(bot.bot);
 
@@ -260,6 +256,22 @@ export function startApiServer(port: number): void {
 
 
 
+
+/**
+ * Serialize an inventory item for /status
+ * @param item The item to serialize
+ * @returns The item id, count, slot and name; items that wear out (tools, weapons, armor)
+ *          also carry how much durability they have used and how much they have when new
+ */
+function serializeItem(item: Item): { id: number; count: number; slot: number; name: string; durabilityUsed?: number; maxDurability?: number } {
+    return {
+        id: item.type,
+        count: item.count,
+        slot: item.slot,
+        name: item.name,
+        ...(item.maxDurability ? { durabilityUsed: item.durabilityUsed, maxDurability: item.maxDurability } : {}),
+    };
+}
 
 /**
  * Scans for blocks near the bot
