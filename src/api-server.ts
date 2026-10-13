@@ -232,6 +232,13 @@ export function startApiServer(port: number): void {
             const result = await action.execute(bot.bot, bot.map);
             //wait for 1 tick after executing the action to ensure environment is updated
             await bot.bot.waitForTicks(1);
+        
+            // if any GUI is open, close if after the action
+            if (bot.bot.currentWindow){
+                await bot.bot.closeWindow(bot.bot.currentWindow);
+            }
+
+
             // Actions may return a boolean outcome or nothing (void).
             bot.lastActionResult = action.expect_result === undefined || action.expect_result === result;
             bot.status = 'IDLE';
